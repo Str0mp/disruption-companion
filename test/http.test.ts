@@ -1,11 +1,12 @@
 import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
-import { makeHandler } from '../src/http/server.ts';
+import { createApp } from '../src/http/app.ts';
+import { nodeHandler } from '../src/http/server.ts';
 import { MockTools, TIMEOUT_KEY_SUFFIX } from '../src/tools/mocks.ts';
 
 const mock = new MockTools();
-const server = createServer(makeHandler(mock, mock)).listen(0);
+const server = createServer(nodeHandler(createApp(mock, mock))).listen(0);
 const base = () => `http://127.0.0.1:${(server.address() as { port: number }).port}`;
 after(() => server.close());
 

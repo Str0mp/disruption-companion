@@ -45,7 +45,7 @@ curl -s -X POST localhost:3000/bookings/ABC123/rebooking \
 # clave terminada en "-timeout" → simula el 503 indeterminado: caso humano, sin reintento
 ```
 
-También hay un `Dockerfile` y un `render.yaml` para desplegarlo tal cual.
+La API está desplegada en Cloudflare Workers (URL más abajo). También hay `Dockerfile` y `render.yaml` para desplegarla en cualquier otro lado.
 
 ## Endpoints
 
@@ -72,7 +72,9 @@ src/domain/assess.ts            orquestador (puro) + efectos
 src/tools/contracts.ts          interfaces de las 7 tools
 src/tools/fixtures.ts           datos del enunciado
 src/tools/mocks.ts              implementación en memoria
-src/http/server.ts              superficie HTTP
+src/http/app.ts                 superficie HTTP (Request → Response, sin framework)
+src/http/server.ts              adaptador Node
+src/http/worker.ts              adaptador Cloudflare Workers
 test/                           28 tests, uno o más por decisión
 ```
 
