@@ -13,10 +13,12 @@ Reconstruido desde los timestamps de las sesiones de trabajo (hora de Chile). El
 | 15:26 | 15:28 | 2 min | A5 decidida, cierre de las cinco | Sí |
 | 15:28 | 15:55 | 27 min | Pausa | No |
 | 15:55 | 16:16 | 21 min | Implementación del slice, 28 tests, commit, traducción a español, registro de tiempo | Sí |
-| 16:16 | 17:58 | 102 min | README de ingeniería, nota de IA, especificación del mensaje, revisión con Jorge, división del README, Dockerfile, refactor HTTP a handler estándar, repo público, deploy en Cloudflare Workers y verificación | Sí |
+| 16:16 | 16:21 | 5 min | Reconstrucción del registro de tiempo | Sí |
+| 16:21 | 17:32 | 71 min | Pausa | No |
+| 17:32 | 17:58 | 26 min | Revisión de los documentos con Jorge, división del README, Dockerfile, refactor HTTP a handler estándar, repo público, deploy en Cloudflare Workers y verificación | Sí |
 
-Efectivo hoy: **3 h 22 min** (35 + 35 + 7 + 2 + 21 + 102). Pausas confirmadas por Jorge.
+Efectivo hoy: **2 h 11 min** (35 + 35 + 7 + 2 + 21 + 5 + 26). Pausas confirmadas por Jorge.
 
 ## Total
 
-**3 h 22 min** efectivos, en una jornada, incluyendo análisis, decisiones, implementación, validación, documentación y deploy. Pendiente fuera de este total: el envío formal y la preparación de la presentación.
+**2 h 11 min** efectivos, en una jornada, incluyendo análisis, decisiones, implementación, validación, documentación y deploy. Pendiente fuera de este total: el envío formal y la preparación de la presentación.
