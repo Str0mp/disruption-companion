@@ -41,7 +41,7 @@ export function createApp(tools: Tools, mock?: MockTools): App {
       }
 
       if (req.method === 'GET' && url.pathname === '/_debug/mock' && mock) {
-        return json(200, { rebookings: [...mock.rebookings.entries()], human_cases: mock.humanCases, notifications: mock.notifications });
+        return json(200, await mock.store.snapshot());
       }
 
       if (parts[0] === 'bookings' && parts[1] && parts[2] === 'assessment' && req.method === 'POST') {

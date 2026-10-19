@@ -10,6 +10,7 @@ T=$(mktemp)
 fallas=0
 chk() { if [ "$2" = "$3" ]; then printf "OK     %-52s %s\n" "$1" "$3"; else printf "FALLA  %-52s esperado %s, obtenido %s\n" "$1" "$2" "$3"; fallas=$((fallas+1)); fi; }
 c() { curl -s -o "$T" -w "%{http_code}" "$@"; }
+rb() { c -X POST "$B/bookings/$1/rebooking" -H "$J" -d "{\"option_id\":\"$2\",\"idempotency_key\":\"$3\"}"; }
 py() { python3 -c "import json,sys; d=json.load(open('$T')); $1" 2>&1 || { echo "FALLA  (contenido) $1"; fallas=$((fallas+1)); }; }
 
 echo "API: $B"
@@ -34,16 +35,16 @@ py "a=d['assessment']; assert a['decision']['recommendation'] is None and a['han
 chk "POST assessment reserva inexistente" 404 "$(c -X POST "$B/bookings/NOPE/assessment")"
 chk "POST assessment JSON inválido" 400 "$(c -X POST "$B/bookings/ABC123/assessment" -H "$J" -d '{nope')"
 chk "POST rebooking sin idempotency_key" 400 "$(c -X POST "$B/bookings/ABC123/rebooking" -H "$J" -d '{"option_id":"O1"}')"
-chk "POST rebooking O2 (1 asiento para 2 pax)" 422 "$(c -X POST "$B/bookings/ABC123/rebooking" -H "$J" -d "{\"option_id\":\"O2\",\"idempotency_key\":\"$K-o2\"}")"
-chk "POST rebooking O3 (no reembolsable)" 422 "$(c -X POST "$B/bookings/ABC123/rebooking" -H "$J" -d "{\"option_id\":\"O3\",\"idempotency_key\":\"$K-o3\"}")"
-chk "POST rebooking O1 primera vez" 201 "$(c -X POST "$B/bookings/ABC123/rebooking" -H "$J" -d "{\"option_id\":\"O1\",\"idempotency_key\":\"$K-o1\"}")"
+chk "POST rebooking O2 (1 asiento para 2 pax)" 422 "$(rb ABC123 O2 "$K-o2")"
+chk "POST rebooking O3 (no reembolsable)" 422 "$(rb ABC123 O3 "$K-o3")"
+chk "POST rebooking O1 primera vez" 201 "$(rb ABC123 O1 "$K-o1")"
 R1=$(python3 -c "import json; print(json.load(open('$T'))['request_id'])")
-chk "POST rebooking O1 misma clave (409 → ya solicitado)" 200 "$(c -X POST "$B/bookings/ABC123/rebooking" -H "$J" -d "{\"option_id\":\"O1\",\"idempotency_key\":\"$K-o1\"}")"
+chk "POST rebooking O1 misma clave (409 → ya solicitado)" 200 "$(rb ABC123 O1 "$K-o1")"
 R2=$(python3 -c "import json; print(json.load(open('$T'))['request_id'])")
 chk "mismo request_id en el reintento" "$R1" "$R2"
-chk "POST rebooking con timeout simulado (503 → 202)" 202 "$(c -X POST "$B/bookings/ABC123/rebooking" -H "$J" -d "{\"option_id\":\"O1\",\"idempotency_key\":\"$K-timeout\"}")"
+chk "POST rebooking con timeout simulado (503 → 202)" 202 "$(rb ABC123 O1 "$K-timeout")"
 py "assert d['status']=='INDETERMINATE' and d['case_id'].startswith('HC-'); print('       caso humano abierto, sin reintento')"
-chk "POST rebooking reserva inexistente" 404 "$(c -X POST "$B/bookings/NOPE/rebooking" -H "$J" -d '{"option_id":"O1","idempotency_key":"12345678"}')"
+chk "POST rebooking reserva inexistente" 404 "$(rb NOPE O1 12345678)"
 
 rm -f "$T"
 echo

@@ -17,9 +17,10 @@ Reconstruido desde los timestamps de las sesiones de trabajo (hora de Chile). El
 | 16:21 | 17:32 | 71 min | Pausa | No |
 | 17:32 | 17:58 | 26 min | Revisión de los documentos con Jorge, división del README, Dockerfile, refactor HTTP a handler estándar, repo público, deploy en Cloudflare Workers y verificación | Sí |
 | 18:05 | 18:18 | 13 min | Verificación final (clon limpio, batería curl), diseño de la consulta ambigua (tarea 2), fila 'no agentic', control de páginas | Sí |
+| 18:18 | 18:35 | 17 min | Script de pruebas HTTP reproducible; estado de escritura de los mocks a KV para idempotencia entre instancias del Worker; redeploy y verificación | Sí |
 
-Efectivo hoy: **2 h 24 min** (35 + 35 + 7 + 2 + 21 + 5 + 26 + 13). Pausas confirmadas por Jorge.
+Efectivo hoy: **2 h 41 min** (35 + 35 + 7 + 2 + 21 + 5 + 26 + 13 + 17). Pausas confirmadas por Jorge.
 
 ## Total
 
-**2 h 24 min** efectivos, en una jornada, incluyendo análisis, decisiones, implementación, validación, documentación y deploy. Pendiente fuera de este total: el envío formal y la preparación de la presentación.
+**2 h 41 min** efectivos, en una jornada, incluyendo análisis, decisiones, implementación, validación, documentación y deploy. Pendiente fuera de este total: el envío formal y la preparación de la presentación.

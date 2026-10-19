@@ -2,9 +2,12 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { assess, executeAssessment } from '../src/domain/assess.ts';
 import { toPassengerView } from '../src/domain/passengerView.ts';
+import { MemoryWriteStore } from '../src/tools/store.ts';
 import { MockTools } from '../src/tools/mocks.ts';
 import { SAMPLE_NOW } from '../src/tools/fixtures.ts';
 import { PEDRO, delay, events } from './helpers.ts';
+
+function store(m: MockTools): MemoryWriteStore { return m.store as MemoryWriteStore; }
 
 test('caso base ABC123: conexión perdida → R3 cambio sin costo, O1 recomendada, caso humano por R5 en paralelo, pasajero notificado', async () => {
   const mock = new MockTools();
@@ -20,9 +23,9 @@ test('caso base ABC123: conexión perdida → R3 cambio sin costo, O1 recomendad
   assert.equal(a.handoff.blocks_communication, false);
   assert.deepEqual(a.handoff.reasons.map((r) => r.rule_id), ['R5']);
   assert.equal(a.human_case?.queue, 'DISRUPTION_L2');
-  assert.equal(mock.humanCases.length, 1);
-  assert.equal(mock.notifications.length, 1);
-  assert.equal(mock.notifications[0]?.policy_ref, 'POL-DELAY-2026-03');
+  assert.equal(store(mock).humanCases.length, 1);
+  assert.equal(store(mock).notifications.length, 1);
+  assert.equal(store(mock).notifications[0]?.policy_ref, 'POL-DELAY-2026-03');
   assert.equal(a.events.discarded.find((d) => d.event_id === 'E-1012')?.reason, 'SOURCE_DEGRADED');
 });
 
@@ -54,8 +57,8 @@ test('Pedro: 20 min de retraso en vuelo directo → no relevante, nada escrito, 
   if ('error' in a) throw new Error('inesperado');
   assert.equal(a.relevant, false);
   assert.equal(a.handoff.required, false);
-  assert.equal(mock.humanCases.length, 0);
-  assert.equal(mock.notifications.length, 0);
+  assert.equal(store(mock).humanCases.length, 0);
+  assert.equal(store(mock).notifications.length, 0);
   assert.equal(toPassengerView(a).status, 'NO_RELEVANT_CHANGE');
 });
 
@@ -67,8 +70,8 @@ test('A4/A5: fuentes confiables en conflicto → caso humano, comunicación bloq
   if ('error' in a) throw new Error('inesperado');
   assert.equal(a.handoff.blocks_communication, true);
   assert.ok(a.handoff.reasons.some((r) => r.code === 'FACT_UNCERTAIN'));
-  assert.equal(mock.humanCases.length, 1);
-  assert.equal(mock.notifications.length, 0);
+  assert.equal(store(mock).humanCases.length, 1);
+  assert.equal(store(mock).notifications.length, 0);
   assert.equal(toPassengerView(a).status, 'UNDER_REVIEW');
 });
 
@@ -78,7 +81,7 @@ test('A4: compensación en efectivo solicitada → derivación por R4, pero lo c
   if ('error' in a) throw new Error('inesperado');
   assert.ok(a.handoff.reasons.some((r) => r.rule_id === 'R4'));
   assert.equal(a.decision.recommendation?.option.option_id, 'O1');
-  assert.equal(mock.notifications.length, 1);
+  assert.equal(store(mock).notifications.length, 1);
 });
 
 test('reserva desconocida → BOOKING_NOT_FOUND', async () => {

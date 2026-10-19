@@ -4,5 +4,6 @@
   "main": "src/http/worker.ts",
   "compatibility_date": "2025-10-01",
   "workers_dev": true,
-  "observability": { "enabled": true }
+  "observability": { "enabled": true },
+  "kv_namespaces": [{ "binding": "STORE", "id": "1eeb449384324cb082a17728ea1227f5" }]
 }

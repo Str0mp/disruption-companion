@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
 import { createApp } from '../src/http/app.ts';
 import { nodeHandler } from '../src/http/server.ts';
+import { MemoryWriteStore } from '../src/tools/store.ts';
 import { MockTools, TIMEOUT_KEY_SUFFIX } from '../src/tools/mocks.ts';
 
 const mock = new MockTools();
@@ -14,6 +15,8 @@ async function post(path: string, body: unknown) {
   const r = await fetch(base() + path, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
   return { status: r.status, body: await r.json() as Record<string, unknown> };
 }
+
+function store(m: MockTools): MemoryWriteStore { return m.store as MemoryWriteStore; }
 
 test('POST /bookings/ABC123/assessment devuelve vista del pasajero + evaluación interna', async () => {
   const { status, body } = await post('/bookings/ABC123/assessment', {});
@@ -39,11 +42,11 @@ test('POST rebooking: una opción no elegible se rechaza del lado del servidor',
 });
 
 test('POST rebooking: 503 del proveedor → sin reintento, caso humano, 202 INDETERMINATE', async () => {
-  const before = mock.humanCases.length;
+  const before = store(mock).humanCases.length;
   const r = await post('/bookings/ABC123/rebooking', { option_id: 'O1', idempotency_key: `abc123-o1${TIMEOUT_KEY_SUFFIX}` });
   assert.equal(r.status, 202);
   assert.equal(r.body.status, 'INDETERMINATE');
-  assert.equal(mock.humanCases.length, before + 1);
+  assert.equal(store(mock).humanCases.length, before + 1);
 });
 
 test('validación: falta la clave de idempotencia → 400', async () => {

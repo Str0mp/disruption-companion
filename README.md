@@ -79,7 +79,8 @@ src/domain/pii.ts               el motor no recibe datos personales
 src/domain/assess.ts            orquestador (puro) + efectos
 src/tools/contracts.ts          interfaces de las 7 tools
 src/tools/fixtures.ts           datos del enunciado
-src/tools/mocks.ts              implementación en memoria
+src/tools/mocks.ts              implementación de las tools con datos de ejemplo
+src/tools/store.ts              estado de escritura: memoria (local, tests) o Cloudflare KV (Worker)
 src/http/app.ts                 superficie HTTP (Request → Response, sin framework)
 src/http/server.ts              adaptador Node
 src/http/worker.ts              adaptador Cloudflare Workers
@@ -97,7 +98,7 @@ Evaluación completa del caso base; resolución de fuentes contradictorias; dete
 ## Limitaciones conocidas
 
 - Solo escenario DELAY; cancelaciones y compensaciones quedan fuera.
-- Mocks en memoria: no hay persistencia, autenticación ni multi-reserva.
+- Mocks con datos fijos: no hay autenticación ni multi-reserva. El estado de escritura (idempotencia, casos, notificaciones) vive en memoria en local y en Cloudflare KV en el Worker; en el sistema real lo garantizan los proveedores.
 - Horarios sin zona horaria, como vienen en los contratos.
 - El ranking de fuentes y el tiempo mínimo de conexión son supuestos documentados.
 - La vista del pasajero usa plantillas fijas en español.
