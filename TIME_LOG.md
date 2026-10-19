@@ -12,10 +12,11 @@ Reconstruido desde los timestamps de las sesiones de trabajo (hora de Chile). El
 | 15:02 | 15:26 | 24 min | 7 min de lectura y reflexión sobre A5; 17 min de pausa | 7 min |
 | 15:26 | 15:28 | 2 min | A5 decidida, cierre de las cinco | Sí |
 | 15:28 | 15:55 | 27 min | Pausa | No |
-| 15:55 | 16:16 | 21 min | Implementación del slice, 28 tests, commit, traducción a español, este registro | Sí |
+| 15:55 | 16:16 | 21 min | Implementación del slice, 28 tests, commit, traducción a español, registro de tiempo | Sí |
+| 16:16 | 17:58 | 102 min | README de ingeniería, nota de IA, especificación del mensaje, revisión con Jorge, división del README, Dockerfile, refactor HTTP a handler estándar, repo público, deploy en Cloudflare Workers y verificación | Sí |
 
-Efectivo hoy hasta las 16:16: **1 h 40 min** (35 + 35 + 7 + 2 + 21). Pausas confirmadas por Jorge.
+Efectivo hoy: **3 h 22 min** (35 + 35 + 7 + 2 + 21 + 102). Pausas confirmadas por Jorge.
 
 ## Total
 
-1 h 40 min hasta las 16:16, más documentación y deploy pendientes (estimado 45 a 60 min). Total esperado: **~2 h 30 min**.
+**3 h 22 min** efectivos, en una jornada, incluyendo análisis, decisiones, implementación, validación, documentación y deploy. Pendiente fuera de este total: el envío formal y la preparación de la presentación.

@@ -57,4 +57,4 @@ Typecheck estricto y 28 tests que codifican las decisiones con casos concretos: 
 
 ## Tiempo
 
-Alrededor de 2,5 horas efectivas en una jornada, repartidas entre análisis y decisiones (1 h 20), implementación y tests (25 min) y documentación y deploy (el resto). Detalle en `TIME_LOG.md`.
+3 h 22 min efectivos en una jornada: análisis y decisiones (1 h 20), implementación y tests (25 min), documentación, refactor y deploy (el resto). Detalle en `TIME_LOG.md`.
