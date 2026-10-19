@@ -32,7 +32,9 @@ Las cinco ambigüedades del enunciado se resolvieron una por una; cada una es un
 
 **5. Fuentes contradictorias: fuera las degradadas, luego ranking de fuente, frescura solo como desempate dentro de una fuente; si fuentes confiables siguen discrepando en qué pasó, el hecho es incierto y decide una persona** (`events.ts`). Descartado "solo frescura": ganaría un dato nuevo de una fuente degradada. Descartado "solo ranking": nunca admite incertidumbre.
 
-**Sin IA en runtime.** El beneficio esperado de un modelo estaría en interpretar consultas en lenguaje libre y redactar mensajes más naturales; no justifica en v1 el costo por interacción, la latencia ni un modo de fallo no auditable en un dominio donde cada frase es un compromiso. Si entra después, será en la redacción sobre plantillas aprobadas, validada contra `policy_ref`, nunca en la decisión.
+**Consulta ambigua o compleja.** El diseño completo está en [`docs/consulta-compleja.md`](docs/consulta-compleja.md): un modelo con salida estructurada convierte el texto libre en intents de un catálogo cerrado; el motor determinístico de este slice decide; una tabla intent → campo de la evaluación responde cada pregunta; la redacción es sobre hechos ya validados, con verificación de que cada afirmación traza a un campo y lleva `policy_ref`. Sin agente con herramientas: el orden de las tools es fijo y las escrituras tienen controles que no se delegan a un modelo.
+
+**Sin IA en runtime en v1.** El beneficio esperado de un modelo estaría en interpretar consultas en lenguaje libre y redactar mensajes más naturales; no justifica en v1 el costo por interacción, la latencia ni un modo de fallo no auditable en un dominio donde cada frase es un compromiso. Si entra después, será en la redacción sobre plantillas aprobadas, validada contra `policy_ref`, nunca en la decisión.
 
 ## Clasificación de pasos
 

@@ -8,6 +8,7 @@ Entregables:
 - **Entregable 2, README de ingeniería:** [`README-ingenieria.md`](README-ingenieria.md).
 - **Entregable 3, AI Usage & Decision Note:** [`AI_NOTE.md`](AI_NOTE.md).
 - Capa complementaria (experiencia del pasajero): [`docs/mensaje-al-pasajero.md`](docs/mensaje-al-pasajero.md).
+- Diseño de la consulta ambigua o compleja (tarea 2, dónde entra la IA): [`docs/consulta-compleja.md`](docs/consulta-compleja.md).
 - Registro de tiempo: [`TIME_LOG.md`](TIME_LOG.md). Registro bruto de uso de IA: [`AI_LOG.md`](AI_LOG.md).
 
 ## Track elegido y por qué
