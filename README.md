@@ -46,6 +46,13 @@ curl -s -X POST localhost:3000/bookings/ABC123/rebooking \
 # clave terminada en "-timeout" → simula el 503 indeterminado: caso humano, sin reintento
 ```
 
+Batería completa contra la API, local o desplegada, con un comando:
+
+```bash
+scripts/smoke.sh                        # contra la API pública
+scripts/smoke.sh http://localhost:3000  # contra una instancia local
+```
+
 La API está desplegada en Cloudflare Workers: **https://disruption-companion.disruption-companion.workers.dev** (los mismos curl funcionan cambiando `localhost:3000` por esa URL). También hay `Dockerfile` y `render.yaml` para desplegarla en cualquier otro lado.
 
 ## Endpoints
