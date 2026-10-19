@@ -1,0 +1,13 @@
+# Registro de uso de IA (bruto, alimenta el Entregable 3)
+
+Formato: fecha · qué propuso la IA · qué hizo Jorge (aceptó / rechazó / modificó) · cómo se validó.
+
+- 2026-10-19 · Claude (Fable 5.1) · Lectura del PDF, lista de entregables y de las trampas escondidas en los datos (160 min < R1 pero conexión perdida → R3; fuente degradada; O2 con 1 asiento para 2 pax; TTL 120 s; 503 indeterminado; 422 sin policy_ref). Jorge lo usó como mapa de qué verificar.
+- 2026-10-19 · Jorge · Decidió resolver las 5 ambigüedades una por una, entendiendo cada una, en vez de aceptarlas en bloque. Método: Claude propone (decisión, por qué, riesgo, qué preguntar y a quién); Jorge acepta / rechaza / modifica.
+- 2026-10-19 · A1 modificación relevante · Propuesta "por impacto en el pasajero". **Aceptada.** Jorge preguntó si el PDF permitía asumir un tiempo mínimo de conexión; confirmado (sección 4 y último párrafo), queda como supuesto explícito y configurable.
+- 2026-10-19 · A2 qué mostrar · Propuesta "solo lo necesario para actuar". **Aceptada con modificación**: Jorge rechazó el riesgo propuesto ("ocultar demasiado"); el mensaje simple es el correcto. Riesgo de reemplazo: cada frase mostrada es un compromiso, así que solo sale validada.
+- 2026-10-19 · A3 recomendación automática · Propuesta de 6 chequeos. Jorge pidió una segunda explicación con ejemplos más simples antes de decidir. **Aceptada.**
+- 2026-10-19 · A4 intervención humana · Propuesta: el pasajero confirma el cambio; agente antes de actuar cuando la política lo exige, el hecho es incierto o una escritura queda indeterminada; R5 en paralelo. La primera justificación de Jorge estaba incompleta (solo "hay un menor"); se corrigió a "el derecho de R3 es independiente de la aprobación de R5". **Aceptada.**
+- 2026-10-19 · A5 fuentes contradictorias · Propuesta: descartar degradadas → ranking de fuente → frescura como desempate → incierto + humano. La primera lectura de Jorge fue errónea ("no hay fuentes confiables"); se corrigió: el evento ON_TIME se descarta porque su propia fuente está degradada. **Aceptada.**
+- 2026-10-19 · Claude · Scaffolding e implementación inicial del slice generada a partir de las cinco decisiones. Decisiones de implementación tomadas por Claude y reportadas a Jorge: (1) el endpoint de cambio vuelve a evaluar antes de escribir y no confía en el cliente; (2) el motor nunca recibe RUT, correo ni teléfono, con test que lo verifica.
+- 2026-10-19 · Jorge · Observó que casi todo estaba en inglés. Decisión: identificadores en inglés (convención y contratos del PDF), todo lo legible por personas en español. Claude reescribió comentarios, textos y tests.

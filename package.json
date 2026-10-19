@@ -1,0 +1,19 @@
+{
+  "name": "disruption-companion",
+  "version": "0.1.0",
+  "description": "Backend vertical slice: decides what a passenger is entitled to after a flight disruption, combining booking, operational events and policy rules.",
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "start": "node src/http/server.ts",
+    "test": "node --test \"test/**/*.test.ts\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "typescript": "^5.9.0"
+  }
+}
