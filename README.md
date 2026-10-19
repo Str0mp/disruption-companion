@@ -2,91 +2,92 @@
 
 Servicio que, dada una reserva, combina el contexto del viaje, los eventos operacionales y las reglas de política para determinar qué le ocurrió al pasajero, qué le corresponde y cuál es su siguiente paso, sin comunicar información no verificada y sin ejecutar acciones de alto impacto sin control.
 
-**Track elegido: Backend/Integración.** La parte difícil del caso está en combinar tres fuentes imperfectas y decidir cuándo el sistema puede actuar solo. Eso se verifica con tests; una pantalla no. La capa de experiencia queda especificada en [`docs/mensaje-al-pasajero.md`](docs/mensaje-al-pasajero.md).
+Entregables:
+
+- **Entregable 1, evidencia técnica:** este archivo y el código.
+- **Entregable 2, README de ingeniería:** [`README-ingenieria.md`](README-ingenieria.md).
+- **Entregable 3, AI Usage & Decision Note:** [`AI_NOTE.md`](AI_NOTE.md).
+- Capa complementaria (experiencia del pasajero): [`docs/mensaje-al-pasajero.md`](docs/mensaje-al-pasajero.md).
+- Registro de tiempo: [`TIME_LOG.md`](TIME_LOG.md). Registro bruto de uso de IA: [`AI_LOG.md`](AI_LOG.md).
+
+## Track elegido y por qué
+
+**Backend/Integración.** La parte difícil del caso está en combinar tres fuentes imperfectas (reserva parcial, eventos contradictorios, opciones candidatas) y decidir cuándo el sistema puede actuar solo. Eso se verifica con tests; una pantalla no. La capa de experiencia queda especificada como contrato y wireframe.
 
 ## Cómo ejecutarlo
 
-Requiere Node 24 o superior (ejecuta TypeScript sin paso de build). Sin dependencias en runtime.
+Requiere Node 24 o superior, que ejecuta TypeScript sin paso de build. Cero dependencias en runtime.
 
 ```bash
 npm install          # solo typescript y @types/node, para el typecheck
 npm test             # 28 tests con el runner nativo de Node
+npm run typecheck
 npm start            # API en http://localhost:3000
 ```
 
 ```bash
-# caso base del enunciado
+# caso base del enunciado: qué ve el pasajero
 curl -s -X POST localhost:3000/bookings/ABC123/assessment | jq .passenger_view
 
-# el pasajero solicita el cambio recomendado (queda pendiente de su confirmación)
+# evidencia completa para auditoría y para el agente humano
+curl -s -X POST localhost:3000/bookings/ABC123/assessment | jq .assessment
+
+# el pasajero pidió compensación en efectivo (activa R4)
+curl -s -X POST localhost:3000/bookings/ABC123/assessment \
+  -H 'content-type: application/json' -d '{"compensation_requested":true}' | jq .assessment.handoff
+
+# solicitar el cambio recomendado (queda pendiente de confirmación del pasajero)
 curl -s -X POST localhost:3000/bookings/ABC123/rebooking \
   -H 'content-type: application/json' \
   -d '{"option_id":"O1","idempotency_key":"abc123-o1-solicitud-1"}'
-
-# misma clave → 409 del proveedor, que se trata como éxito previo
+# misma clave otra vez → el 409 del proveedor se trata como éxito previo
+# option_id O2 → 422, la opción no pasó los chequeos
 # clave terminada en "-timeout" → simula el 503 indeterminado: caso humano, sin reintento
 ```
 
-La respuesta de `assessment` trae dos vistas: `passenger_view`, lo único que vería el pasajero, y `assessment`, la evidencia completa para auditoría y para el agente humano.
+También hay un `Dockerfile` y un `render.yaml` para desplegarlo tal cual.
 
-## Problema entendido y outcome esperado
+## Endpoints
 
-Un pasajero cuyo vuelo cambió necesita saber tres cosas: qué pasó, qué le corresponde y qué hacer ahora. El negocio quiere reducir su incertidumbre y las llamadas evitables al call center, sin equivocarse, porque una recomendación incorrecta cuesta dinero, reclamos o incumplimiento de política.
+| Método y ruta | Qué hace |
+|---|---|
+| `POST /bookings/:id/assessment` | Evalúa la reserva. Devuelve `passenger_view` (lo único que vería el pasajero) y `assessment` (evidencia completa). Abre caso humano y notifica si corresponde. Cuerpo opcional: `compensation_requested`, `now`. |
+| `POST /bookings/:id/rebooking` | Solicita el cambio. Vuelve a evaluar antes de escribir; rechaza opciones no elegibles. Cuerpo: `option_id`, `idempotency_key`. Respuestas 201, 200 (ya solicitado), 202 (indeterminado), 422, 400. |
+| `GET /health` | Salud del servicio. |
+| `GET /_debug/mock` | Estado de las tools de escritura en memoria. Solo demo. |
 
-El outcome medible de una primera versión: porcentaje de disrupciones resueltas sin contacto humano, tasa de aceptación de la recomendación, y casos escalados que terminaron en la misma decisión que el sistema habría tomado (la señal para relajar los controles con evidencia).
+El reloj por defecto es el de los datos de ejemplo (`2026-09-15T11:02:37Z`) para que las opciones no aparezcan expiradas; se puede pasar `now` en el cuerpo.
 
-## Supuestos y alcance
+## Estructura
 
-| Supuesto | Por qué | A quién lo validaría |
-|---|---|---|
-| Tiempo mínimo de conexión: 60 min, configurable | El caso no lo trae y sin él no se puede decidir si una conexión se pierde | Operaciones |
-| Ranking de autoridad de fuentes: OPS_CORE > AIRPORT_FEED > LEGACY_MIRROR | Inferido de los nombres; un espejo copia, no origina | Operaciones / plataforma de datos |
-| Solo se modela el escenario DELAY | Es el único con política en el enunciado | PM |
-| "Confianza" de las opciones se usa como filtro sin conocer cómo se calcula | Es lo que el sistema de opciones expone | Dueño de `get_eligible_options` |
-| Plazo: el PDF decía 48 h y sin deploy; el correo del proceso, 4 días hábiles con repo público y API desplegada | Se consultó; la respuesta fue avanzar y desplegar. Se siguió el correo | Reclutamiento |
+```
+src/domain/events.ts        A5  fuentes contradictorias
+src/domain/impacts.ts       A1  qué es una modificación relevante
+src/domain/policy.ts            evaluación de reglas versionadas
+src/domain/recommend.ts     A3  cuándo la recomendación es automática
+src/domain/handoff.ts       A4  cuándo interviene una persona
+src/domain/passengerView.ts A2  qué ve el pasajero
+src/domain/pii.ts               el motor no recibe datos personales
+src/domain/assess.ts            orquestador (puro) + efectos
+src/tools/contracts.ts          interfaces de las 7 tools
+src/tools/fixtures.ts           datos del enunciado
+src/tools/mocks.ts              implementación en memoria
+src/http/server.ts              superficie HTTP
+test/                           28 tests, uno o más por decisión
+```
 
-Alcance implementado: evaluación completa del caso base, los seis chequeos de automatización, derivación a humano, mensaje al pasajero, solicitud de cambio con idempotencia y manejo de las tres respuestas del proveedor. Mocks en memoria de las siete tools con los datos del enunciado. Fuera de alcance: cancelaciones, compensaciones, múltiples reservas, persistencia, autenticación.
+## Alcance efectivamente implementado
 
-## Decisiones principales y alternativas descartadas
+Evaluación completa del caso base; resolución de fuentes contradictorias; detección de conexión perdida o en riesgo; evaluación de la política con condiciones formales; los seis chequeos de automatización; derivación a humano con evidencia; mensaje al pasajero sin datos internos ni personales; solicitud de cambio con idempotencia y manejo de las tres respuestas del proveedor; notificación solo con `policy_ref`. Mocks en memoria de las siete tools con los datos del enunciado.
 
-Las cinco ambigüedades del enunciado se resolvieron una por una. Cada una es un módulo con sus tests.
+## Tests y validaciones
 
-**1. Modificación relevante = la que cambia lo que el pasajero debe hacer o lo que le corresponde** (`impacts.ts`). Conexión perdida, cancelación o un derecho nuevo según la política. Descartado "por tipo de evento" (avisaría por un retraso de 20 min) y "por umbral de minutos" (el caso base tiene 160 min, bajo el umbral de 180 de R1, y aun así pierde la conexión: la consecuencia importa, no el tamaño).
+28 tests con `node:test`, sin librerías. Cubren: el caso base (R3 y no R1, O1 y no O2, caso humano por R5 en paralelo), un vuelo directo con 20 min de retraso (no relevante, nada escrito), un retraso de 4 h (voucher por R2), fuente degradada con dato más nuevo, fuentes confiables en conflicto, opciones expiradas, compensación solicitada, respuestas 201/409/503 del proveedor, validación de entrada, y dos tests que fallan si un dato personal o interno aparece donde no debe.
 
-**2. Al pasajero se le muestra solo lo necesario para entender y actuar** (`passengerView.ts`). Sin fuentes, niveles de confianza, ids de reglas ni campos faltantes; eso queda para auditoría y el agente. El motor de decisión no recibe RUT, correo ni teléfono. Descartado "mostrar todo lo no personal": "confianza media" no es accionable y genera llamadas. El riesgo real no es ocultar demasiado sino que cada frase mostrada es un compromiso, por eso solo sale validada.
+## Limitaciones conocidas
 
-**3. Recomendación automática solo si pasan seis chequeos** (`recommend.ts`): fuentes sin conflicto, datos faltantes irrelevantes para esta decisión, regla sin aprobación humana, confianza alta, viable para todo el grupo (asientos y costo), no expirada. Si falla uno, se informa lo cierto y se deriva. Descartado "siempre automático" (habría ofrecido O2: un asiento para dos pasajeros) y "nunca automático" (45 min de espera para algo que el sistema ya sabe).
-
-**4. El pasajero confirma el cambio; un agente interviene antes de actuar cuando la política lo exige, el hecho es incierto o una escritura quedó indeterminada** (`handoff.ts`). Regla general: si lo que requiere aprobación es adicional a lo ya cierto, se informa lo cierto y se escala el resto (R5, menor en el grupo, corre en paralelo); si lo que requiere aprobación es el derecho mismo (R4, compensación), se espera. Descartado "bloquear todo si hay un menor": castiga al grupo que la regla protege. Descartado "reintentar ante 503": puede duplicar; una persona verifica.
-
-**5. Fuentes contradictorias: descartar degradadas, luego ranking de fuente, frescura solo como desempate dentro de una fuente, y si fuentes confiables siguen discrepando en qué pasó, el hecho es incierto y decide una persona** (`events.ts`). Descartado "solo frescura": un dato nuevo de una fuente degradada ganaría. Descartado "solo ranking": nunca admite incertidumbre.
-
-**Sin IA en runtime.** Toda la lógica es determinística. El beneficio esperado de un modelo estaría en interpretar consultas en lenguaje libre y redactar mensajes más naturales; no justifica en v1 el costo por interacción, la latencia ni un modo de fallo que no se puede auditar en un dominio donde cada frase es un compromiso. Si se incorpora después, entra en la redacción sobre plantillas aprobadas, validado contra `policy_ref` antes de enviar, nunca en la decisión.
-
-## Clasificación de pasos
-
-| Paso | Clasificación | Razón | Riesgo | Control / fallback |
-|---|---|---|---|---|
-| Resolver fuentes contradictorias | Determinístico | Reglas auditables sobre metadatos que las fuentes ya exponen | Ranking supuesto | Configurable; si fuentes confiables discrepan → humano |
-| Detectar impacto (conexión perdida) | Determinístico | Aritmética de horarios | Margen de conexión supuesto | Parámetro; "en riesgo" en vez de "perdida" cerca del margen |
-| Evaluar política | Determinístico | Reglas versionadas con condiciones formales | Variable desconocida | Regla INDETERMINABLE, no falsa; se reporta |
-| Elegir opción y decidir si es automática | Determinístico | Seis chequeos explícitos | Demasiados casos a humano | Medir tasa de automatización y relajar con evidencia |
-| Redactar el mensaje | Determinístico (plantillas) | Cada frase es un compromiso | Texto rígido | Candidato a AI-assisted sobre plantilla, validado con `policy_ref` |
-| Cambiar la reserva | Human-controlled (el pasajero confirma) | Acción de alto impacto; la tool ya lo modela así | 503 indeterminado | Idempotencia; sin reintento ciego; caso humano |
-| Atención prioritaria, compensación | Human-controlled (agente) | La política lo exige | Demora para el pasajero | Lo cierto se informa en paralelo |
-| Consulta en lenguaje libre | AI-assisted (futuro) | Único paso donde un modelo aporta | Interpretación errónea | Fuera de v1; siempre desemboca en esta misma evaluación |
-
-## Riesgos y próximos pasos
-
-- **Ranking de fuentes y margen de conexión son supuestos.** Primeras dos preguntas a Operaciones.
-- **Arranque conservador.** Muchos casos caerán a humano; hay que medir cuántos habrían sido iguales en automático.
-- **Opciones con TTL de 120 s.** La recomendación caduca; el endpoint de cambio vuelve a evaluar antes de escribir.
-- Próximos pasos: adaptadores reales detrás de las interfaces de `tools/contracts.ts`, persistencia de evaluaciones para auditoría, escenario de cancelación, autenticación del pasajero, y la capa de experiencia especificada en `docs/`.
-
-## Cómo se validó
-
-Typecheck estricto y 28 tests que codifican las decisiones anteriores con casos concretos: el caso base del enunciado (R3 y no R1, O1 y no O2, caso humano por R5 en paralelo), un vuelo directo con 20 min de retraso (no relevante, nada escrito), un retraso de 4 h (voucher por R2), fuente degradada con dato más nuevo, fuentes confiables en conflicto, opciones expiradas, compensación solicitada, 201/409/503 del proveedor, y dos tests que fallan si algún dato personal o interno aparece donde no debe.
-
-## Sobre el tiempo
-
-El registro está en [`TIME_LOG.md`](TIME_LOG.md): alrededor de 2,5 horas efectivas repartidas en una jornada, incluyendo análisis, decisiones, implementación, validación y documentación.
+- Solo escenario DELAY; cancelaciones y compensaciones quedan fuera.
+- Mocks en memoria: no hay persistencia, autenticación ni multi-reserva.
+- Horarios sin zona horaria, como vienen en los contratos.
+- El ranking de fuentes y el tiempo mínimo de conexión son supuestos documentados.
+- La vista del pasajero usa plantillas fijas en español.
